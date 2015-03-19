@@ -10,7 +10,7 @@ class USpeechInputController : public UActorComponent
 
 public:
 
-	//virtual void OnRegister() override;
+	virtual void OnRegister() override;
 
 	//virtual void OnUnregister() override;
 
@@ -18,17 +18,22 @@ public:
 
 	//UFUNCTION(BlueprintImplementableEvent, meta = (FriendlyName = "SpeechInputColor", CompactNodeTitle = "", Keywords = "Speech Input Color"), Category = "Speech Input Event")
 	//void SpeechEventColor();
+	
+	/*
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSpeechInputControllerUsedDelegate);
-	UPROPERTY(BlueprintAssignable, Category = "Ability")
+	UPROPERTY(BlueprintAssignable, meta = (FriendlyName = "SpeechInputColor", CompactNodeTitle = "", Keywords = "Speech Input Color"), Category = "Ability")
 	FSpeechInputControllerUsedDelegate SpeechEventColor;
 	
-
 	UFUNCTION(BlueprintImplementableEvent, meta = (FriendlyName = "SpeechInputTexture", CompactNodeTitle = "", Keywords = "Speech Input Texture"), Category = "Speech Input Event")
 	void SpeechEventTexture();
+	*/
+
+	void SetInterfaceDelegate(UObject* newDelegate);
 
 private:
 
 	void InterfaceEventTick(float DeltaTime);
 
+	UObject* interfaceDelegate;
 	uint32_t ticks = 0;
 };

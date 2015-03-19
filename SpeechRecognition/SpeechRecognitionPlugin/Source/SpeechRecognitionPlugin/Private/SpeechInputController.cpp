@@ -6,7 +6,8 @@
 USpeechInputController::USpeechInputController(const FObjectInitializer &init) :
 	UActorComponent(init)
 {
-
+	bAutoActivate = true;
+	PrimaryComponentTick.bCanEverTick = true;
 }
 
 void USpeechInputController::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) {
@@ -15,23 +16,34 @@ void USpeechInputController::TickComponent(float DeltaTime, enum ELevelTick Tick
 	InterfaceEventTick(DeltaTime);
 }
 
-/*
-void USpeechInputController::OnRegister() {
-
-}
-*/
-
 void USpeechInputController::InterfaceEventTick(float DeltaTime) {
-	//SpeechEventColor.Broadcast();
-	/*
-	auto t = Cast<ISpeechEventInterface>(this);
-	if (t != nullptr) {
-		TScriptInterface<ISpeechEventInterface> s = TScriptInterface<ISpeechEventInterface>();
-		s.SetObject(this);
-		s.SetInterface(t);
-		t->Execute_SpeechEventColor(this);
+	if ((ticks % 80) < 40)
+	{
+		ISpeechEventInterface::Execute_SpeechEventColor(interfaceDelegate);
 	}
-	*/
-
+	else
+	{
+		ISpeechEventInterface::Execute_SpeechEventTexture(interfaceDelegate);
+	}
+	
 	ticks++;
+}
+
+void USpeechInputController::OnRegister()
+{
+	Super::OnRegister();
+
+	SetInterfaceDelegate(GetOwner());
+}
+
+void USpeechInputController::SetInterfaceDelegate(UObject* newDelegate)
+{
+	if (newDelegate->GetClass()->ImplementsInterface(USpeechEventInterface::StaticClass()))
+	{
+		interfaceDelegate = newDelegate;
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("SpeechInputController Warning: Delegate is NOT set, did you implement SpeechEventInterface?"));
+	}
 }

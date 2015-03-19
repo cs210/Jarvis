@@ -14,12 +14,10 @@ class ISpeechEventInterface
 
 public:
 
-	/*
 	UFUNCTION(BlueprintImplementableEvent, meta = (FriendlyName = "SpeechInputColor", CompactNodeTitle = "", Keywords = "Speech Input Color"), Category = "Speech Input Event")
     void SpeechEventColor();
 
     UFUNCTION(BlueprintImplementableEvent, meta = (FriendlyName = "SpeechInputTexture", CompactNodeTitle = "", Keywords = "Speech Input Texture"), Category = "Speech Input Event")
 	void SpeechEventTexture();
-	*/
 
 };
