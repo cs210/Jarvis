@@ -12,8 +12,8 @@ We intend to use Voce as the speech recognition library in the backend
 A custom plugin to integrate Speech Recognition into Unreal Engine 4
 
 In order to use the plugin, follow these steps:
-1. Go to Window->Plugins->SpeechRecognition and enable the plugin. Restart the UE editor to enable the plugin
-2. Choose an actor (or a define a new one) in the level being edited
+1 Go to Window->Plugins->SpeechRecognition and enable the plugin. Restart the UE editor to enable the plugin
+2 Choose an actor (or a define a new one) in the level being edited
 3. Open the blueprint for the actor and click on the Components tab on the top-right
 4. From the panel on the left, choose Add Component and select Speech Input Controller listed under the Input section
 5. Click on Blueprint Props on the top left. 
