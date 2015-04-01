@@ -1,0 +1,21 @@
+{
+	"FileVersion" : 1,
+	
+	"FriendlyName" : "UE4 Speech Recognition Plugin",
+	"Version" : 1,
+	"VersionName" : "1.0",
+	"CreatedBy" : "Team Jarvis",
+	"CreatedByURL" : "http://epicgames.com",
+	"EngineVersion" : "4.2.0",
+	"Description" : "A speech recognition plugin for UE4.",
+	"Category" : "SpeechRecognition",
+	"EnabledByDefault" : false,
+	
+	"Modules" :
+	[
+		{
+			"Name" : "SpeechRecognitionPlugin",
+			"Type" : "Runtime"
+		}
+	]
+}
