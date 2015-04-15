@@ -2,7 +2,7 @@
 Repo for Team Jarvis
 
 ## Editor
-Unreal Engine level editing project.
+Unreal Engine level editing project. Uses the Razer Hydra.
 
 ## EditorPrototype
 Unreal project that uses the Xbox 360 controller to move and scale objects. Deprecated.
