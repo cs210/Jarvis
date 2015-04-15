@@ -1,6 +1,12 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "4.7",
+	"EngineAssociation": "{FE1BD854-4228-07EE-EAFD-3A9DD9753F15}",
 	"Category": "",
-	"Description": ""
+	"Description": "",
+	"Plugins": [
+		{
+			"Name": "SixenseAPI",
+			"Enabled": true
+		}
+	]
 }
