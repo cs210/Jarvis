@@ -18,8 +18,9 @@ Some calibration is needed to reset the positions of the virtual pointers.
 4. Press spacebar or Left Button 3 to reset the pointers.
 
 ## Controls
-- Press X to switch between player movement and object movement.
-- Press left and right shoulder buttons to cycle through the selectable objects.
-- Left thumbstick for x/y axis movement.
-- Right thumbsick for z axis movement and object scaling.
-- Start button to toggle menu
+- Joystick to navigate
+- Right button 4 to toggle the Save/Load menu
+- Right butten 2 to toggle the Spawn menu
+- Right trigger to select things (menu items, for example)
+- Right and Left triggers to grab objects
+- Right button 1 while grabbing an object to delete it.
