@@ -1,11 +1,10 @@
 
 #include "SpeechRecognitionPluginPrivatePCH.h"
 
-//USpeechRecognizerFunctionLibrary::USpeechRecognizerFunctionLibrary(const class FPostConstructInitializeProperties& PCIP)
 USpeechRecognizerFunctionLibrary::USpeechRecognizerFunctionLibrary(const class FObjectInitializer& PCIP)
 	: Super(PCIP)
 {
- 
+
 }
  
 bool USpeechRecognizerFunctionLibrary::SaveStringTextToFile(
@@ -45,3 +44,36 @@ bool USpeechRecognizerFunctionLibrary::SaveStringTextToFile(
  
 	return FFileHelper::SaveStringToFile(FString("Hello blueprint function library!"), * SaveDirectory);
 }
+
+TArray<FString> USpeechRecognizerFunctionLibrary::GetNamesOfAllStaticMeshes()
+{
+	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+	TArray<FAssetData> AssetData;
+	FARFilter Filter;
+	Filter.ClassNames.Add(FName(*(UStaticMesh::StaticClass()->GetName())));
+	AssetRegistryModule.Get().GetAssets(Filter, AssetData);
+
+	TArray<FString> names;
+	for (int32 i = 0; i < AssetData.Num(); i++) {
+		names.Add(AssetData[i].AssetName.ToString());
+	}
+	
+	return names;
+}
+
+TArray<FString> USpeechRecognizerFunctionLibrary::GetNamesOfAllMaterials()
+{
+	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+	TArray<FAssetData> AssetData;
+	FARFilter Filter;
+	Filter.ClassNames.Add(FName(*(UMaterial::StaticClass()->GetName())));
+	AssetRegistryModule.Get().GetAssets(Filter, AssetData);
+
+	TArray<FString> names;
+	for (int32 i = 0; i < AssetData.Num(); i++) {
+		names.Add(AssetData[i].AssetName.ToString());
+	}
+
+	return names;
+}
+

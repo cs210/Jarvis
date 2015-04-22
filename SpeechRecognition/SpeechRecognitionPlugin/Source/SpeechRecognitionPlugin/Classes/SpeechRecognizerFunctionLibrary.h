@@ -5,6 +5,7 @@
 #include "CoreUObject.h"
 #include "Engine.h"
 #include "Engine/EngineTypes.h"
+#include "AssetRegistryModule.h"
 #include "SpeechRecognitionPluginPrivatePCH.h"
 #include "SpeechRecognizerFunctionLibrary.generated.h"
  
@@ -19,7 +20,14 @@ class USpeechRecognizerFunctionLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_UCLASS_BODY()
  
-	/** Saves text to filename of your choosing, make sure include whichever file extension you want in the filename, ex: SelfNotes.txt . Make sure to include the entire file path in the save directory, ex: C:\MyGameDir\BPSavedTextFiles */
-	UFUNCTION(BlueprintCallable, Category="SpeechRecognizerFunctionLibrary")
-	static bool SaveStringTextToFile(FString SaveDirectory, FString FileName, bool AllowOverWriting = false);
+	public:
+		/** Saves text to filename of your choosing, make sure include whichever file extension you want in the filename, ex: SelfNotes.txt . Make sure to include the entire file path in the save directory, ex: C:\MyGameDir\BPSavedTextFiles */
+		UFUNCTION(BlueprintCallable, Category="SpeechRecognizerFunctionLibrary")
+		static bool SaveStringTextToFile(FString SaveDirectory, FString FileName, bool AllowOverWriting = false);
+
+		UFUNCTION(BlueprintCallable, Category = "MenuFunctionLibrary")
+		static TArray<FString> GetNamesOfAllStaticMeshes();
+
+		UFUNCTION(BlueprintCallable, Category = "MenuFunctionLibrary")
+		static TArray<FString> GetNamesOfAllMaterials();
 };
