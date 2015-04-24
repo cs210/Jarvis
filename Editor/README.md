@@ -24,3 +24,4 @@ Some calibration is needed to reset the positions of the virtual pointers.
 - Right trigger to select things (menu items, for example)
 - Right and Left triggers to grab objects
 - Right button 1 while grabbing an object to delete it.
+- Right button 3 while pointing at object to select it from distance
