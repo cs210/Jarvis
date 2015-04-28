@@ -1,0 +1,21 @@
+{
+	"FileVersion" : 1,
+	
+	"FriendlyName" : "UE4 Jarvis Plugin",
+	"Version" : 1,
+	"VersionName" : "1.0",
+	"CreatedBy" : "Team Jarvis",
+	"CreatedByURL" : "http://epicgames.com",
+	"EngineVersion" : "4.2.0",
+	"Description" : "A plugin for creating VR in VR.",
+	"Category" : "JarvisPlugin",
+	"EnabledByDefault" : false,
+	
+	"Modules" :
+	[
+		{
+			"Name" : "JarvisPlugin",
+			"Type" : "Runtime"
+		}
+	]
+}
