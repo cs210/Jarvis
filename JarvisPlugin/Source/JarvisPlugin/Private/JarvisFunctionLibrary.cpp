@@ -1,6 +1,8 @@
 
 #include "JarvisPluginPrivatePCH.h"
 
+DEFINE_LOG_CATEGORY(UserActionsLog);
+
 UJarvisFunctionLibrary::UJarvisFunctionLibrary(const class FObjectInitializer& PCIP)
 	: Super(PCIP)
 {
@@ -170,4 +172,9 @@ FString UJarvisFunctionLibrary::GetUserCommand()
 	}
 
 	return FString(ANSI_TO_TCHAR("UNK"));
+}
+
+void UJarvisFunctionLibrary::LogUserAction(FString msg)
+{
+	UE_LOG(UserActionsLog, Log, TEXT("%s"), *msg);
 }

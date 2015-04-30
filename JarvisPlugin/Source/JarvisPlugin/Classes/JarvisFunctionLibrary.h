@@ -16,6 +16,8 @@
 #include "JarvisFunctionLibrary.generated.h"
  
 //above name must match the name on your hard disk for this .h file
+
+DECLARE_LOG_CATEGORY_EXTERN(UserActionsLog, Log, All);
  
 //note about UBlueprintFunctionLibrary
 // This class is a base class for any function libraries exposed to blueprints.
@@ -54,7 +56,10 @@ class UJarvisFunctionLibrary : public UBlueprintFunctionLibrary
 		* @return	How many Unreal units correspond to one meter in the real world
 		*/
 		UFUNCTION(BlueprintPure, Category = "Input|HeadMountedDisplay", meta = (WorldContext = "WorldContext"))
-			static float GetWorldToMetersScale(UObject* WorldContext);
+		static float GetWorldToMetersScale(UObject* WorldContext);
+
+		UFUNCTION(BlueprintCallable, Category = "LogLibrary")
+		static void LogUserAction(FString msg);
 
 		static void InitializePocketSphinxRecognizer();
 };
