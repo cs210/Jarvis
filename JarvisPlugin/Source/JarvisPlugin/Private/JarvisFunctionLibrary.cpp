@@ -8,6 +8,10 @@ UJarvisFunctionLibrary::UJarvisFunctionLibrary(const class FObjectInitializer& P
 {
 	InitializePocketSphinxRecognizer();
 }
+
+//===========================================
+// Jarvis general blueprint methods
+//===========================================
  
 bool UJarvisFunctionLibrary::SaveStringTextToFile(
 	FString SaveDirectory, 
@@ -79,8 +83,6 @@ TArray<FString> UJarvisFunctionLibrary::GetNamesOfAllMaterials()
 	return names;
 }
 
-//============================
-
 void UJarvisFunctionLibrary::SetWorldToMetersScale(UObject* WorldContext, float NewScale)
 {
 	if (WorldContext)
@@ -93,6 +95,10 @@ float UJarvisFunctionLibrary::GetWorldToMetersScale(UObject* WorldContext)
 {
 	return WorldContext ? WorldContext->GetWorld()->GetWorldSettings()->WorldToMeters : 0.f;
 }
+
+//===========================================
+// Speech recognition methods
+//===========================================
 
 void UJarvisFunctionLibrary::InitializePocketSphinxRecognizer()
 {
@@ -107,7 +113,6 @@ void UJarvisFunctionLibrary::InitializePocketSphinxRecognizer()
 
 	config = cmd_ln_parse_r(NULL, cont_args_def, argc, argv, TRUE);
 
-	//TODO: Replace calls to the E_* logging functions with calls to appropriate functions exposed by UE
 	if (config == NULL || (cmd_ln_str_r(config, "-infile") == NULL && cmd_ln_boolean_r(config, "-inmic") == FALSE)) {
 		UE_LOG(LogTemp, Warning, TEXT("Specify '-infile <file.wav>' to recognize from file or '-inmic yes' to recognize from microphone.\n"));
 		cmd_ln_free_r(config);
@@ -121,8 +126,6 @@ void UJarvisFunctionLibrary::InitializePocketSphinxRecognizer()
 		return;
 	}
 
-	//E_INFO("%s COMPILED ON: %s, AT: %s\n\n", argv[0], __DATE__, __TIME__);
-
 	if ((ad = ad_open_dev(cmd_ln_str_r(config, "-adcdev"),
 		(int)cmd_ln_float32_r(config,
 		"-samprate"))) == NULL) {
@@ -130,51 +133,81 @@ void UJarvisFunctionLibrary::InitializePocketSphinxRecognizer()
 		return;
 	}
 
+	
 	if (ad_start_rec(ad) < 0) {
 		UE_LOG(LogTemp, Warning, TEXT("Failed to start recording\n"));
 		return;
 	}
-
+	/*
 	if (ps_start_utt(ps) < 0) {
 		UE_LOG(LogTemp, Warning, TEXT("Failed to start utterance\\n"));
 		return;
 	}
+	*/
 
 	utt_started = FALSE;
 }
 
 FString UJarvisFunctionLibrary::GetUserCommand()
 {
-	if ((k = ad_read(ad, adbuf, 2048)) < 0)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Failed to read audio\n"));
+	if (ps_start_utt(ps) < 0) {
+		UE_LOG(LogTemp, Warning, TEXT("Failed to start utterance\\n"));
+		return default_user_command;
 	}
 
-	ps_process_raw(ps, adbuf, k, FALSE, FALSE);
-	in_speech = ps_get_in_speech(ps);
+	do { ReadAudioBuffer(); } while (!in_speech);
+	while (in_speech) { ReadAudioBuffer(); }
 
-	if (in_speech && !utt_started)
+	ps_end_utt(ps);
+	hyp = ps_get_hyp(ps, NULL);
+
+	if (hyp != NULL)
 	{
-		utt_started = TRUE;
+		UE_LOG(LogTemp, Warning, TEXT("You said: %s"), ANSI_TO_TCHAR(hyp));
+		return FString(ANSI_TO_TCHAR(hyp));
 	}
 
-	if (!in_speech && utt_started)
-	{
-		ps_end_utt(ps);
-		hyp = ps_get_hyp(ps, NULL);
-		if (hyp != NULL)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("You said: %s"), ANSI_TO_TCHAR(hyp));
-			return FString(ANSI_TO_TCHAR(hyp));
-		}
-
-		utt_started = FALSE;
-	}
-
-	return FString(ANSI_TO_TCHAR("UNK"));
+	return default_user_command;
 }
+
+//===========================================
+// Logger methods
+//===========================================
 
 void UJarvisFunctionLibrary::LogUserAction(FString msg)
 {
 	UE_LOG(UserActionsLog, Log, TEXT("%s"), *msg);
+}
+
+//===========================================
+// Helper methods
+//===========================================
+
+void UJarvisFunctionLibrary::ReadAudioBuffer()
+{
+	if ((k = ad_read(ad, adbuf, 2048)) < 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to read audio\n"));
+		return;
+	}
+
+	ps_process_raw(ps, adbuf, k, FALSE, FALSE);
+	in_speech = ps_get_in_speech(ps);
+	SleepMilliSec(5);
+}
+
+/* Sleep for specified msec */
+void UJarvisFunctionLibrary::SleepMilliSec(int32 ms)
+{
+#if (defined(_WIN32) && !defined(GNUWINCE)) || defined(_WIN32_WCE)
+	Sleep(ms);
+#else
+	/* ------------------- Unix ------------------ */
+	struct timeval tmo;
+
+	tmo.tv_sec = 0;
+	tmo.tv_usec = ms * 1000;
+
+	select(0, NULL, NULL, NULL, &tmo);
+#endif
 }

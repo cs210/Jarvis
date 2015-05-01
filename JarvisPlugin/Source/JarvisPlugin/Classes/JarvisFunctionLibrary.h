@@ -48,7 +48,7 @@ class UJarvisFunctionLibrary : public UBlueprintFunctionLibrary
 		* @param NewScale	Specifies how many Unreal units correspond to one meter in the real world
 		*/
 		UFUNCTION(BlueprintCallable, Category = "Input|HeadMountedDisplay", meta = (WorldContext = "WorldContext"))
-			static void SetWorldToMetersScale(UObject* WorldContext, float NewScale = 100.f);
+		static void SetWorldToMetersScale(UObject* WorldContext, float NewScale = 100.f);
 
 		/**
 		* Returns the World to Meters scale, which corresponds to the scale of the world as perceived by the player
@@ -62,6 +62,8 @@ class UJarvisFunctionLibrary : public UBlueprintFunctionLibrary
 		static void LogUserAction(FString msg);
 
 		static void InitializePocketSphinxRecognizer();
+		static void SleepMilliSec(int32 ms);
+		static void ReadAudioBuffer();
 };
 
 static ps_decoder_t *ps;
@@ -72,6 +74,8 @@ static int16 adbuf[2048];
 static uint8 utt_started, in_speech;
 static int32 k;
 static char const *hyp;
+
+static FString default_user_command = FString(ANSI_TO_TCHAR("UNK"));
 
 static const arg_t cont_args_def[] = {
 	POCKETSPHINX_OPTIONS,
