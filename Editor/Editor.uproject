@@ -7,6 +7,10 @@
 		{
 			"Name": "SixenseAPI",
 			"Enabled": true
+		},
+		{
+			"Name": "JarvisPlugin",
+			"Enabled": true
 		}
 	]
 }
