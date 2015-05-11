@@ -88,7 +88,7 @@ TArray<FString> UJarvisFunctionLibrary::LoadMeshCollections(FString directoryPat
 			path.ParseIntoArray(&elems, TEXT("/"), true);
 			int32 numElems = elems.Num();
 			if (numElems >= 3) {
-				FString collection = elems[numElems - 2];
+				FString collection = elems[numElems - 2].ToLower();
 				AddMeshToCollection(collection, mesh);
 			}
 		}
@@ -175,7 +175,8 @@ void UJarvisFunctionLibrary::InitializePocketSphinxRecognizer()
 	argv[1] = "-inmic"; argv[2] = "yes";
 	argv[3] = "-hmm"; argv[4] = "C:\\Users\\Jarvis\\Downloads\\CMUSphinx\\pocketsphinx-5prealpha\\model\\en-us\\en-us";
 	argv[5] = "-lm"; argv[6] = "C:\\Users\\Jarvis\\Downloads\\CMUSphinx\\pocketsphinx-5prealpha\\model\\en-us\\en-us.lm.dmp";
-	argv[7] = "-dict"; argv[8] = "D:\\Tmp\\cmusphinx_app\\JarvisTestApp1\\model\\jarvis_vocab.dict";
+	//argv[7] = "-dict"; argv[8] = "D:\\Tmp\\cmusphinx_app\\JarvisTestApp1\\model\\jarvis_vocab.dict";
+	argv[7] = "-dict"; argv[8] = "D:\\Jarvis\\JarvisPlugin\\Model\\jarvis_vocab.dict";
 
 	config = cmd_ln_parse_r(NULL, cont_args_def, argc, argv, TRUE);
 
@@ -199,11 +200,13 @@ void UJarvisFunctionLibrary::InitializePocketSphinxRecognizer()
 		return;
 	}
 
-	
+	/*
 	if (ad_start_rec(ad) < 0) {
 		UE_LOG(LogTemp, Warning, TEXT("Failed to start recording\n"));
 		return;
 	}
+	*/
+
 	/*
 	if (ps_start_utt(ps) < 0) {
 		UE_LOG(LogTemp, Warning, TEXT("Failed to start utterance\\n"));
@@ -216,6 +219,11 @@ void UJarvisFunctionLibrary::InitializePocketSphinxRecognizer()
 
 FString UJarvisFunctionLibrary::GetUserCommand()
 {
+	if (ad_start_rec(ad) < 0) {
+		UE_LOG(LogTemp, Warning, TEXT("Failed to start recording\n"));
+		return default_user_command;
+	}
+
 	if (ps_start_utt(ps) < 0) {
 		UE_LOG(LogTemp, Warning, TEXT("Failed to start utterance\\n"));
 		return default_user_command;
@@ -230,7 +238,16 @@ FString UJarvisFunctionLibrary::GetUserCommand()
 	if (hyp != NULL)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("You said: %s"), ANSI_TO_TCHAR(hyp));
+
+		if (ad_stop_rec(ad) < 0) {
+			UE_LOG(LogTemp, Warning, TEXT("Failed to stop recording\n"));
+		}
+
 		return FString(ANSI_TO_TCHAR(hyp));
+	}
+
+	if (ad_stop_rec(ad) < 0) {
+		UE_LOG(LogTemp, Warning, TEXT("Failed to stop recording\n"));
 	}
 
 	return default_user_command;
