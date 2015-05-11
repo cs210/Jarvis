@@ -31,13 +31,16 @@ class UJarvisFunctionLibrary : public UBlueprintFunctionLibrary
 	public:
 		/** Saves text to filename of your choosing, make sure include whichever file extension you want in the filename, ex: SelfNotes.txt . Make sure to include the entire file path in the save directory, ex: C:\MyGameDir\BPSavedTextFiles */
 		UFUNCTION(BlueprintCallable, Category = "JarvisFunctionLibrary")
-			static bool SaveStringTextToFile(FString SaveDirectory, FString FileName, bool AllowOverWriting = false);
+		static bool SaveStringTextToFile(FString SaveDirectory, FString FileName, bool AllowOverWriting = false);
 
 		UFUNCTION(BlueprintCallable, Category = "MenuFunctionLibrary")
-		static TArray<FString> GetNamesOfAllStaticMeshes();
+		static TArray<FString> LoadMeshCollections(FString directoryPath);
 
 		UFUNCTION(BlueprintCallable, Category = "MenuFunctionLibrary")
-		static TArray<FString> GetNamesOfAllMaterials();
+		static TArray<UStaticMesh*> GetMeshesFromCollection(FString collectionName);
+
+		UFUNCTION(BlueprintCallable, Category = "MenuFunctionLibrary")
+		static UStaticMesh* LoadStaticMesh(FString ObjectPath);
 
 		UFUNCTION(BlueprintCallable, Category = "SpeechRecognitionLibrary")
 		static FString GetUserCommand();
@@ -61,10 +64,15 @@ class UJarvisFunctionLibrary : public UBlueprintFunctionLibrary
 		UFUNCTION(BlueprintCallable, Category = "LogLibrary")
 		static void LogUserAction(FString msg);
 
+		// Helper methods
+		static void AddMeshToCollection(FString collection, UStaticMesh* mesh);
+		static void PrintCollectionToMeshesMap();
 		static void InitializePocketSphinxRecognizer();
 		static void SleepMilliSec(int32 ms);
 		static void ReadAudioBuffer();
 };
+
+static TMap<FString, TArray<UStaticMesh*>> collectionToMeshes;
 
 static ps_decoder_t *ps;
 static cmd_ln_t *config;

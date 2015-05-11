@@ -51,37 +51,103 @@ bool UJarvisFunctionLibrary::SaveStringTextToFile(
 	return FFileHelper::SaveStringToFile(FString("Hello blueprint function library!"), * SaveDirectory);
 }
 
-TArray<FString> UJarvisFunctionLibrary::GetNamesOfAllStaticMeshes()
+//===========================================
+// Jarvis AssetRegistry methods
+//===========================================
+
+TArray<FString> UJarvisFunctionLibrary::LoadMeshCollections(FString directoryPath)
 {
+	// Get a reference to the AssetRegistry
 	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
-	TArray<FAssetData> AssetData;
+	IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+
+	// Scan all the assets in the provided directory (which is expected to be the root directory containing all the meshes related to the Jarvis project)
+	TArray<FString> PathsToScan;
+	PathsToScan.Add(directoryPath);
+	AssetRegistry.ScanPathsSynchronous(PathsToScan);
+
+	// Create a filter for the statis mesh assets in the registry
 	FARFilter Filter;
 	Filter.ClassNames.Add(FName(*(UStaticMesh::StaticClass()->GetName())));
-	AssetRegistryModule.Get().GetAssets(Filter, AssetData);
 
-	TArray<FString> names;
-	for (int32 i = 0; i < AssetData.Num(); i++) {
-		names.Add(AssetData[i].AssetName.ToString());
-	}
-	
-	return names;
-}
-
-TArray<FString> UJarvisFunctionLibrary::GetNamesOfAllMaterials()
-{
-	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+	// Apply the filter and store the results in AssetData
 	TArray<FAssetData> AssetData;
-	FARFilter Filter;
-	Filter.ClassNames.Add(FName(*(UMaterial::StaticClass()->GetName())));
 	AssetRegistryModule.Get().GetAssets(Filter, AssetData);
 
-	TArray<FString> names;
-	for (int32 i = 0; i < AssetData.Num(); i++) {
-		names.Add(AssetData[i].AssetName.ToString());
+	TArray<FString> meshPaths;
+	for (int32 i = 0; i < AssetData.Num(); i++)
+	{
+		FString path = AssetData[i].ObjectPath.ToString();
+		if (path.StartsWith(directoryPath)) // We consider only those meshes that are placed in the specified directory
+		{
+			meshPaths.Add(path);
+			UStaticMesh* mesh = LoadStaticMesh(path);
+
+			// Obtain name of the collection from the mesh path and store the mesh in the (collection -> meshes) map
+			TArray<FString> elems;
+			path.ParseIntoArray(&elems, TEXT("/"), true);
+			int32 numElems = elems.Num();
+			if (numElems >= 3) {
+				FString collection = elems[numElems - 2];
+				AddMeshToCollection(collection, mesh);
+			}
+		}
 	}
 
-	return names;
+	PrintCollectionToMeshesMap();
+
+	return meshPaths;
 }
+
+TArray<UStaticMesh*> UJarvisFunctionLibrary::GetMeshesFromCollection(FString collectionName)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Calling GetMeshesFromCollection() with collection == %s"), *collectionName);
+
+	if (collectionToMeshes.Contains(collectionName))
+	{
+		return collectionToMeshes[collectionName];
+	}
+
+	TArray<UStaticMesh*> meshes;
+	return meshes;
+}
+
+void UJarvisFunctionLibrary::AddMeshToCollection(FString collection, UStaticMesh* mesh)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Adding mesh %s to collection: %s"), *(mesh->GetFullName()), *collection);
+	if (!(collectionToMeshes.Contains(collection)))
+	{
+		TArray<UStaticMesh*> meshPaths;
+		collectionToMeshes.Add(collection, meshPaths);
+	}
+
+	collectionToMeshes[collection].Add(mesh);
+}
+
+UStaticMesh* UJarvisFunctionLibrary::LoadStaticMesh(FString ObjectPath)
+{
+	UObject* mesh = StaticLoadObject(UStaticMesh::StaticClass(), NULL, *ObjectPath);
+	return Cast<UStaticMesh>(mesh);
+}
+
+void UJarvisFunctionLibrary::PrintCollectionToMeshesMap()
+{
+	for (const auto& entry : collectionToMeshes)
+	{
+		auto collection = entry.Key;
+		auto meshes = entry.Value;
+		UE_LOG(LogTemp, Warning, TEXT("Collection: %s"), *collection);
+
+		for (const auto& m : meshes)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("\t\t\tMesh: %s"), *(m->GetFullName()));
+		}
+	}
+}
+
+//===========================================
+// World-to-meters methods
+//===========================================
 
 void UJarvisFunctionLibrary::SetWorldToMetersScale(UObject* WorldContext, float NewScale)
 {
