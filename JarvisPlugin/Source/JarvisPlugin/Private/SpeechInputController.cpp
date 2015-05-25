@@ -2,6 +2,8 @@
 #include "JarvisPluginPrivatePCH.h"
 #include "SpeechInputController.h"
 #include "SpeechEventInterface.h"
+#include "JarvisFunctionLibrary.h"
+
 
 USpeechInputController::USpeechInputController(const FObjectInitializer &init) :
 	UActorComponent(init)
@@ -11,14 +13,28 @@ USpeechInputController::USpeechInputController(const FObjectInitializer &init) :
 	//InitializePocketSphinxRecognizer();
 }
 
-void USpeechInputController::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) {
+void USpeechInputController::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction)
+{
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	ticks++;
-	if (ticks % 5 == 0)
+	///*
+	if (SpeechRecognitionThread->IsResultPending())
 	{
-		//InterfaceEventTick(DeltaTime);
+		UE_LOG(UserActionsLog, Log, TEXT("Result pending from SpeechRecognitionThread"));
+		//int t = SpeechRecognitionThread->GetResult();
+		//FString s = FString("Hello ") + FString::FromInt(t);
+		FString s = SpeechRecognitionThread->GetResult();
+
+		ISpeechEventInterface::Execute_SpeechEventCommand(interfaceDelegate, s);
+		UE_LOG(UserActionsLog, Log, TEXT("Triggered SpeechEventCommand from SpeecEventInterface. s == '%s'"), *s);
 	}
+	//*/
+
+	//ticks++;
+	//if (ticks % 5 == 0)
+	//{
+		//InterfaceEventTick(DeltaTime);
+	//}
 }
 
 /*

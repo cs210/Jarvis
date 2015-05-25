@@ -6,7 +6,17 @@ DEFINE_LOG_CATEGORY(UserActionsLog);
 UJarvisFunctionLibrary::UJarvisFunctionLibrary(const class FObjectInitializer& PCIP)
 	: Super(PCIP)
 {
-	InitializePocketSphinxRecognizer();
+	//InitializePocketSphinxRecognizer();
+	// Code based on constructor in MessageBus.cpp
+	Thr = FRunnableThread::Create(SpeechRecognitionThread, TEXT("UJarvisFunctionLibrary.SpeechRecognitionThread"), 128 * 1024, TPri_Normal, FPlatformAffinity::GetPoolThreadMask());
+}
+
+UJarvisFunctionLibrary::~UJarvisFunctionLibrary()
+{
+	SpeechRecognitionThread->EnqueueCommand(SpeechRecognizer::CMD_STOP);
+	Thr->Kill(true);
+	delete Thr;
+	Thr = nullptr;
 }
 
 //===========================================
@@ -166,6 +176,7 @@ float UJarvisFunctionLibrary::GetWorldToMetersScale(UObject* WorldContext)
 // Speech recognition methods
 //===========================================
 
+/*
 void UJarvisFunctionLibrary::InitializePocketSphinxRecognizer()
 {
 	//TODO: Parametrize the hard-coded paths below - use configuration files?
@@ -175,7 +186,6 @@ void UJarvisFunctionLibrary::InitializePocketSphinxRecognizer()
 	argv[1] = "-inmic"; argv[2] = "yes";
 	argv[3] = "-hmm"; argv[4] = "C:\\Users\\Jarvis\\Downloads\\CMUSphinx\\pocketsphinx-5prealpha\\model\\en-us\\en-us";
 	argv[5] = "-lm"; argv[6] = "C:\\Users\\Jarvis\\Downloads\\CMUSphinx\\pocketsphinx-5prealpha\\model\\en-us\\en-us.lm.dmp";
-	//argv[7] = "-dict"; argv[8] = "D:\\Tmp\\cmusphinx_app\\JarvisTestApp1\\model\\jarvis_vocab.dict";
 	argv[7] = "-dict"; argv[8] = "D:\\Jarvis\\JarvisPlugin\\Model\\jarvis_vocab.dict";
 
 	config = cmd_ln_parse_r(NULL, cont_args_def, argc, argv, TRUE);
@@ -200,23 +210,11 @@ void UJarvisFunctionLibrary::InitializePocketSphinxRecognizer()
 		return;
 	}
 
-	/*
-	if (ad_start_rec(ad) < 0) {
-		UE_LOG(LogTemp, Warning, TEXT("Failed to start recording\n"));
-		return;
-	}
-	*/
-
-	/*
-	if (ps_start_utt(ps) < 0) {
-		UE_LOG(LogTemp, Warning, TEXT("Failed to start utterance\\n"));
-		return;
-	}
-	*/
-
 	utt_started = FALSE;
 }
+*/
 
+/*
 FString UJarvisFunctionLibrary::GetUserCommand()
 {
 	if (ad_start_rec(ad) < 0) {
@@ -252,6 +250,14 @@ FString UJarvisFunctionLibrary::GetUserCommand()
 
 	return default_user_command;
 }
+*/
+
+void UJarvisFunctionLibrary::GetUserCommand_Mod()
+{
+	UE_LOG(UserActionsLog, Log, TEXT("Calling GetUserCommand_Mod..."));
+	SpeechRecognitionThread->EnqueueCommand(SpeechRecognizer::CMD_GET_USER_INPUT);
+	UE_LOG(UserActionsLog, Log, TEXT("Calling GetUserCommand_Mod... DONE"));
+}
 
 //===========================================
 // Logger methods
@@ -266,6 +272,7 @@ void UJarvisFunctionLibrary::LogUserAction(FString msg)
 // Helper methods
 //===========================================
 
+/*
 void UJarvisFunctionLibrary::ReadAudioBuffer()
 {
 	if ((k = ad_read(ad, adbuf, 2048)) < 0)
@@ -278,19 +285,4 @@ void UJarvisFunctionLibrary::ReadAudioBuffer()
 	in_speech = ps_get_in_speech(ps);
 	SleepMilliSec(5);
 }
-
-/* Sleep for specified msec */
-void UJarvisFunctionLibrary::SleepMilliSec(int32 ms)
-{
-#if (defined(_WIN32) && !defined(GNUWINCE)) || defined(_WIN32_WCE)
-	Sleep(ms);
-#else
-	/* ------------------- Unix ------------------ */
-	struct timeval tmo;
-
-	tmo.tv_sec = 0;
-	tmo.tv_usec = ms * 1000;
-
-	select(0, NULL, NULL, NULL, &tmo);
-#endif
-}
+*/
