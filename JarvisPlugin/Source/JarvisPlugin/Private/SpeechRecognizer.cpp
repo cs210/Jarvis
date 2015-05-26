@@ -147,13 +147,17 @@ FString SpeechRecognizer::ProcessUserCommand()
 
 	if (hyp != NULL)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("You said: %s"), ANSI_TO_TCHAR(hyp));
+		UE_LOG(LogTemp, Warning, TEXT("You said: '%s'"), ANSI_TO_TCHAR(hyp));
 
 		if (ad_stop_rec(ad) < 0) {
 			UE_LOG(LogTemp, Warning, TEXT("Failed to stop recording\n"));
 		}
 
 		return FString(ANSI_TO_TCHAR(hyp));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Hypothesis is NULL\n"));
 	}
 
 	if (ad_stop_rec(ad) < 0) {

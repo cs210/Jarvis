@@ -13,6 +13,7 @@ UJarvisFunctionLibrary::UJarvisFunctionLibrary(const class FObjectInitializer& P
 
 UJarvisFunctionLibrary::~UJarvisFunctionLibrary()
 {
+	MostRecentActionIdx = -1;
 	SpeechRecognitionThread->EnqueueCommand(SpeechRecognizer::CMD_STOP);
 	Thr->Kill(true);
 	delete Thr;
@@ -286,3 +287,66 @@ void UJarvisFunctionLibrary::ReadAudioBuffer()
 	SleepMilliSec(5);
 }
 */
+
+void UJarvisFunctionLibrary::RecordUserAction(AActor* Actor, EAction Action)
+{
+	FUserAction* NewAction = new FUserAction();
+	NewAction->Actor = Actor;
+	NewAction->Action = Action;
+	NewAction->Location = Actor->GetActorLocation();
+	NewAction->Rotation = Actor->GetActorRotation();
+	NewAction->Scale = Actor->GetActorScale();
+
+	if (MostRecentActionIdx != (UserActionHistory.Num() - 1))
+	{
+		UserActionHistory.SetNum(MostRecentActionIdx + 1);
+	}
+
+	UserActionHistory.Push(NewAction);
+	MostRecentActionIdx++;
+}
+
+void UJarvisFunctionLibrary::Redo()
+{
+	if (MostRecentActionIdx < (UserActionHistory.Num() - 1))
+	{
+		FUserAction* A = UserActionHistory[MostRecentActionIdx + 1];
+		CommitUserAction(A);
+		return;
+	}
+
+	UE_LOG(UserActionsLog, Warning, TEXT("No more actions left to redo"));
+}
+
+void UJarvisFunctionLibrary::Undo()
+{
+	if (MostRecentActionIdx >= 0)
+	{
+		FUserAction* A = UserActionHistory[MostRecentActionIdx];
+		CommitUserAction(A);
+		return;
+	}
+
+	UE_LOG(UserActionsLog, Warning, TEXT("No more actions left to undo"));
+}
+
+void UJarvisFunctionLibrary::CommitUserAction(FUserAction* A)
+{
+	switch (A->Action)
+	{
+		case EAction::VE_Translate:
+			A->Actor->SetActorLocation(A->Location);
+			break;
+
+		case EAction::VE_Rotate:
+			A->Actor->SetActorRotation(A->Rotation);
+			break;
+
+		case EAction::VE_Scale:
+			A->Actor->SetActorScale3D(A->Scale);
+			break;
+
+		default:
+			UE_LOG(UserActionsLog, Warning, TEXT("Implementation to unroll action missing."));
+	}
+}

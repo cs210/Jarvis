@@ -7,11 +7,12 @@
 #include "Engine/EngineTypes.h"
 #include "AssetRegistryModule.h"
 
-#include <sphinxbase/err.h>
-#include <sphinxbase/ad.h>
+//#include <sphinxbase/err.h>
+//#include <sphinxbase/ad.h>
 
-#include "pocketsphinx.h"
+//#include "pocketsphinx.h"
 
+#include "SpeechRecognizer.h"
 #include "JarvisPluginPrivatePCH.h"
 #include "JarvisFunctionLibrary.generated.h"
  
@@ -23,6 +24,40 @@ DECLARE_LOG_CATEGORY_EXTERN(UserActionsLog, Log, All);
 // This class is a base class for any function libraries exposed to blueprints.
 // Methods in subclasses are expected to be static
  
+//===========================================
+// Enum type for user actions
+//===========================================
+UENUM(BlueprintType)
+enum class EAction : uint8
+{
+	VE_Translate UMETA(DisplayName = "VE_Translate"),
+	VE_Rotate	 UMETA(DisplayName = "VE_Rotate"),
+	VE_Scale	 UMETA(DisplayName = "VE_Scale"),
+	//VE_Delete	 UMETA(DisplayName = "VE_Delete"),
+	//VE_Invalid	 UMETA(DisplayName = "VE_Invalid")
+};
+
+USTRUCT()
+struct FUserAction
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY()
+	AActor* Actor;
+	
+	UPROPERTY()
+	EAction Action;
+
+	UPROPERTY()
+	FVector Location;
+
+	UPROPERTY()
+	FVector Scale;
+
+	UPROPERTY()
+	FRotator Rotation;
+};
+
 UCLASS()
 class UJarvisFunctionLibrary : public UBlueprintFunctionLibrary
 {
@@ -42,8 +77,11 @@ class UJarvisFunctionLibrary : public UBlueprintFunctionLibrary
 		UFUNCTION(BlueprintCallable, Category = "MenuFunctionLibrary")
 		static UStaticMesh* LoadStaticMesh(FString ObjectPath);
 
+		//UFUNCTION(BlueprintCallable, Category = "SpeechRecognitionLibrary")
+		//static FString GetUserCommand();
+
 		UFUNCTION(BlueprintCallable, Category = "SpeechRecognitionLibrary")
-		static FString GetUserCommand();
+		static void GetUserCommand_Mod();
 
 		/**
 		* Sets the World to Meters scale, which changes the scale of the world as perceived by the player
@@ -64,16 +102,35 @@ class UJarvisFunctionLibrary : public UBlueprintFunctionLibrary
 		UFUNCTION(BlueprintCallable, Category = "LogLibrary")
 		static void LogUserAction(FString msg);
 
+		UFUNCTION(BlueprintCallable, Category = "Undo|Redo")
+		static void RecordUserAction(AActor* Actor, EAction Action);
+
+		UFUNCTION(BlueprintCallable, Category = "Undo|Redo")
+		static void Redo();
+
+		UFUNCTION(BlueprintCallable, Category = "Undo|Redo")
+		static void Undo();
+
 		// Helper methods
 		static void AddMeshToCollection(FString collection, UStaticMesh* mesh);
 		static void PrintCollectionToMeshesMap();
-		static void InitializePocketSphinxRecognizer();
-		static void SleepMilliSec(int32 ms);
-		static void ReadAudioBuffer();
+		static void CommitUserAction(FUserAction* A); // Used by the undo/redo functionality
+		//static void InitializePocketSphinxRecognizer();
+		//static void SleepMilliSec(int32 ms);
+		//static void ReadAudioBuffer();
+
+		~UJarvisFunctionLibrary();	
+
+	private:
+		FRunnableThread* Thr;
+		
 };
 
 static TMap<FString, TArray<UStaticMesh*>> collectionToMeshes;
-
+static SpeechRecognizer* SpeechRecognitionThread = new SpeechRecognizer();
+static TArray<FUserAction*> UserActionHistory;
+static int MostRecentActionIdx;
+/*
 static ps_decoder_t *ps;
 static cmd_ln_t *config;
 
@@ -87,7 +144,6 @@ static FString default_user_command = FString(ANSI_TO_TCHAR("UNK"));
 
 static const arg_t cont_args_def[] = {
 	POCKETSPHINX_OPTIONS,
-	/* Argument file. */
 	{ "-argfile",
 	ARG_STRING,
 	NULL,
@@ -110,3 +166,4 @@ static const arg_t cont_args_def[] = {
 	"Print word times in file transcription." },
 	CMDLN_EMPTY_OPTION
 };
+*/
