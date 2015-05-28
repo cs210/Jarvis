@@ -13,7 +13,6 @@ UJarvisFunctionLibrary::UJarvisFunctionLibrary(const class FObjectInitializer& P
 
 UJarvisFunctionLibrary::~UJarvisFunctionLibrary()
 {
-	MostRecentActionIdx = -1;
 	SpeechRecognitionThread->EnqueueCommand(SpeechRecognizer::CMD_STOP);
 	Thr->Kill(true);
 	delete Thr;
@@ -288,30 +287,34 @@ void UJarvisFunctionLibrary::ReadAudioBuffer()
 }
 */
 
-void UJarvisFunctionLibrary::RecordUserAction(AActor* Actor, EAction Action)
+void UJarvisFunctionLibrary::CaptureActorState(AActor* Actor)
 {
-	FUserAction* NewAction = new FUserAction();
-	NewAction->Actor = Actor;
-	NewAction->Action = Action;
-	NewAction->Location = Actor->GetActorLocation();
-	NewAction->Rotation = Actor->GetActorRotation();
-	NewAction->Scale = Actor->GetActorScale();
+	FActorState* State = GetActorState(Actor);
 
-	if (MostRecentActionIdx != (UserActionHistory.Num() - 1))
+	LogFActorState(State);
+
+	if (RedoSnapshots.Num() > 0)
 	{
-		UserActionHistory.SetNum(MostRecentActionIdx + 1);
+		RedoSnapshots.SetNum(0);
 	}
 
-	UserActionHistory.Push(NewAction);
-	MostRecentActionIdx++;
+	UndoSnapshots.Push(State);
+
+	UE_LOG(UserActionsLog, Warning, TEXT("Recording user action (Size of UndoSnapshots: %d) (Size of RedoSnapshots: %d)"), UndoSnapshots.Num(), RedoSnapshots.Num());
 }
 
 void UJarvisFunctionLibrary::Redo()
 {
-	if (MostRecentActionIdx < (UserActionHistory.Num() - 1))
+	UE_LOG(UserActionsLog, Warning, TEXT("REDO called"));
+	if (RedoSnapshots.Num() > 0)
 	{
-		FUserAction* A = UserActionHistory[MostRecentActionIdx + 1];
-		CommitUserAction(A);
+		FActorState* State = RedoSnapshots.Pop();
+		FActorState* CurrentStateOfActor = GetActorState(State->Actor);
+		UndoSnapshots.Push(CurrentStateOfActor);
+
+		SetActorState(State);
+		UE_LOG(UserActionsLog, Warning, TEXT("REDO performed (Size of UndoSnapshots: %d) (Size of RedoSnapshots: %d)"), UndoSnapshots.Num(), RedoSnapshots.Num());
+		LogFActorState(State);
 		return;
 	}
 
@@ -320,33 +323,48 @@ void UJarvisFunctionLibrary::Redo()
 
 void UJarvisFunctionLibrary::Undo()
 {
-	if (MostRecentActionIdx >= 0)
+	UE_LOG(UserActionsLog, Warning, TEXT("UNDO called"));
+	if (UndoSnapshots.Num() > 0)
 	{
-		FUserAction* A = UserActionHistory[MostRecentActionIdx];
-		CommitUserAction(A);
+		FActorState* State = UndoSnapshots.Pop();
+
+		FActorState* CurrentStateOfActor = GetActorState(State->Actor);
+		RedoSnapshots.Push(CurrentStateOfActor);
+		
+		SetActorState(State);
+		UE_LOG(UserActionsLog, Warning, TEXT("UNDO performed (Size of UndoSnapshots: %d) (Size of RedoSnapshots: %d)"), UndoSnapshots.Num(), RedoSnapshots.Num());
+		LogFActorState(State);
 		return;
 	}
 
 	UE_LOG(UserActionsLog, Warning, TEXT("No more actions left to undo"));
 }
 
-void UJarvisFunctionLibrary::CommitUserAction(FUserAction* A)
+FActorState* UJarvisFunctionLibrary::GetActorState(AActor* Actor)
 {
-	switch (A->Action)
-	{
-		case EAction::VE_Translate:
-			A->Actor->SetActorLocation(A->Location);
-			break;
+	FActorState* State = new FActorState();
+	State->Actor = Actor;
+	State->Location = Actor->GetActorLocation();
+	State->Rotation = Actor->GetActorRotation();
+	State->Scale = Actor->GetActorScale3D();
 
-		case EAction::VE_Rotate:
-			A->Actor->SetActorRotation(A->Rotation);
-			break;
+	return State;
+}
 
-		case EAction::VE_Scale:
-			A->Actor->SetActorScale3D(A->Scale);
-			break;
+void UJarvisFunctionLibrary::SetActorState(FActorState* State)
+{
+	UE_LOG(UserActionsLog, Warning, TEXT("SET actor state"));
+	LogFActorState(State);
+	AActor* Actor = State->Actor;
+	Actor->SetActorLocation(State->Location);
+	Actor->SetActorRotation(State->Rotation);
+	Actor->SetActorScale3D(State->Scale);
+}
 
-		default:
-			UE_LOG(UserActionsLog, Warning, TEXT("Implementation to unroll action missing."));
-	}
+void UJarvisFunctionLibrary::LogFActorState(FActorState* A)
+{
+	UE_LOG(UserActionsLog, Warning, TEXT("    Actor: '%s'"), *(A->Actor->GetName()));
+	UE_LOG(UserActionsLog, Warning, TEXT("    Location: '%s'"), *(A->Location.ToString()));
+	UE_LOG(UserActionsLog, Warning, TEXT("    Rotation: '%s'"), *(A->Rotation.ToString()));
+	UE_LOG(UserActionsLog, Warning, TEXT("    Scale: '%s'"), *(A->Scale.ToString()));
 }

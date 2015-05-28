@@ -27,6 +27,7 @@ DECLARE_LOG_CATEGORY_EXTERN(UserActionsLog, Log, All);
 //===========================================
 // Enum type for user actions
 //===========================================
+
 UENUM(BlueprintType)
 enum class EAction : uint8
 {
@@ -38,15 +39,12 @@ enum class EAction : uint8
 };
 
 USTRUCT()
-struct FUserAction
+struct FActorState
 {
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY()
 	AActor* Actor;
-	
-	UPROPERTY()
-	EAction Action;
 
 	UPROPERTY()
 	FVector Location;
@@ -103,7 +101,7 @@ class UJarvisFunctionLibrary : public UBlueprintFunctionLibrary
 		static void LogUserAction(FString msg);
 
 		UFUNCTION(BlueprintCallable, Category = "Undo|Redo")
-		static void RecordUserAction(AActor* Actor, EAction Action);
+		static void CaptureActorState(AActor* Actor);
 
 		UFUNCTION(BlueprintCallable, Category = "Undo|Redo")
 		static void Redo();
@@ -114,7 +112,11 @@ class UJarvisFunctionLibrary : public UBlueprintFunctionLibrary
 		// Helper methods
 		static void AddMeshToCollection(FString collection, UStaticMesh* mesh);
 		static void PrintCollectionToMeshesMap();
-		static void CommitUserAction(FUserAction* A); // Used by the undo/redo functionality
+
+		static void SetActorState(FActorState* A); // Used by the undo/redo functionality
+		static void LogFActorState(FActorState* A);
+		static FActorState* GetActorState(AActor* Actor);
+
 		//static void InitializePocketSphinxRecognizer();
 		//static void SleepMilliSec(int32 ms);
 		//static void ReadAudioBuffer();
@@ -128,8 +130,10 @@ class UJarvisFunctionLibrary : public UBlueprintFunctionLibrary
 
 static TMap<FString, TArray<UStaticMesh*>> collectionToMeshes;
 static SpeechRecognizer* SpeechRecognitionThread = new SpeechRecognizer();
-static TArray<FUserAction*> UserActionHistory;
-static int MostRecentActionIdx;
+
+static TArray<FActorState*> UndoSnapshots;
+static TArray<FActorState*> RedoSnapshots;
+
 /*
 static ps_decoder_t *ps;
 static cmd_ln_t *config;
