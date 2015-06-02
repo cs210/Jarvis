@@ -3,6 +3,13 @@
 	"EngineAssociation": "{FE1BD854-4228-07EE-EAFD-3A9DD9753F15}",
 	"Category": "",
 	"Description": "",
+	"Modules": [
+		{
+			"Name": "Editor",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
 	"Plugins": [
 		{
 			"Name": "SixenseAPI",
