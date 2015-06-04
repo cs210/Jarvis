@@ -9,6 +9,7 @@ UJarvisFunctionLibrary::UJarvisFunctionLibrary(const class FObjectInitializer& P
 	//InitializePocketSphinxRecognizer();
 	// Code based on constructor in MessageBus.cpp
 	Thr = FRunnableThread::Create(SpeechRecognitionThread, TEXT("UJarvisFunctionLibrary.SpeechRecognitionThread"), 128 * 1024, TPri_Normal, FPlatformAffinity::GetPoolThreadMask());
+	UE_LOG(LogTemp, Warning, TEXT("Library initialized"));
 }
 
 UJarvisFunctionLibrary::~UJarvisFunctionLibrary()
@@ -17,48 +18,66 @@ UJarvisFunctionLibrary::~UJarvisFunctionLibrary()
 	Thr->Kill(true);
 	delete Thr;
 	Thr = nullptr;
+	UE_LOG(LogTemp, Warning, TEXT("Library destructed"));
+}
+
+void UJarvisFunctionLibrary::Reset()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Calling Reset..."));
+
+	if (UndoSnapshots.Num() > 0)
+	{
+		UndoSnapshots.SetNum(0);
+	}
+
+	if (RedoSnapshots.Num() > 0)
+	{
+		RedoSnapshots.SetNum(0);
+	}
+	
+	UE_LOG(LogTemp, Warning, TEXT("Calling Reset... DONE"));
 }
 
 //===========================================
 // Jarvis general blueprint methods
 //===========================================
- 
+
 bool UJarvisFunctionLibrary::SaveStringTextToFile(
-	FString SaveDirectory, 
+	FString SaveDirectory,
 	FString FileName,
 	bool AllowOverWriting
-){
+	){
 	//Dir Exists?
-	if ( !FPlatformFileManager::Get().GetPlatformFile().DirectoryExists( *SaveDirectory ))
+	if (!FPlatformFileManager::Get().GetPlatformFile().DirectoryExists(*SaveDirectory))
 	{
 		//create directory if it not exist
-		FPlatformFileManager::Get().GetPlatformFile().CreateDirectory( *SaveDirectory );
- 
+		FPlatformFileManager::Get().GetPlatformFile().CreateDirectory(*SaveDirectory);
+
 		//still could not make directory?
-		if (!FPlatformFileManager::Get().GetPlatformFile().DirectoryExists( *SaveDirectory ))
+		if (!FPlatformFileManager::Get().GetPlatformFile().DirectoryExists(*SaveDirectory))
 		{
 			//Could not make the specified directory
 			return false;
 			//~~~~~~~~~~~~~~~~~~~~~~
 		}
 	}
- 
+
 	//get complete file path
 	SaveDirectory += "\\";
 	SaveDirectory += FileName;
- 
+
 	//No over-writing?
 	if (!AllowOverWriting)
 	{
 		//Check if file exists already
-		if (FPlatformFileManager::Get().GetPlatformFile().FileExists( * SaveDirectory )) 
+		if (FPlatformFileManager::Get().GetPlatformFile().FileExists(*SaveDirectory))
 		{
 			//no overwriting
 			return false;
 		}
 	}
- 
-	return FFileHelper::SaveStringToFile(FString("Hello blueprint function library!"), * SaveDirectory);
+
+	return FFileHelper::SaveStringToFile(FString("Hello blueprint function library!"), *SaveDirectory);
 }
 
 //===========================================
@@ -179,76 +198,76 @@ float UJarvisFunctionLibrary::GetWorldToMetersScale(UObject* WorldContext)
 /*
 void UJarvisFunctionLibrary::InitializePocketSphinxRecognizer()
 {
-	//TODO: Parametrize the hard-coded paths below - use configuration files?
-	int argc = 9;
-	char **argv = (char **)malloc(argc * sizeof(char *));
-	argv[0] = "";
-	argv[1] = "-inmic"; argv[2] = "yes";
-	argv[3] = "-hmm"; argv[4] = "C:\\Users\\Jarvis\\Downloads\\CMUSphinx\\pocketsphinx-5prealpha\\model\\en-us\\en-us";
-	argv[5] = "-lm"; argv[6] = "C:\\Users\\Jarvis\\Downloads\\CMUSphinx\\pocketsphinx-5prealpha\\model\\en-us\\en-us.lm.dmp";
-	argv[7] = "-dict"; argv[8] = "D:\\Jarvis\\JarvisPlugin\\Model\\jarvis_vocab.dict";
+//TODO: Parametrize the hard-coded paths below - use configuration files?
+int argc = 9;
+char **argv = (char **)malloc(argc * sizeof(char *));
+argv[0] = "";
+argv[1] = "-inmic"; argv[2] = "yes";
+argv[3] = "-hmm"; argv[4] = "C:\\Users\\Jarvis\\Downloads\\CMUSphinx\\pocketsphinx-5prealpha\\model\\en-us\\en-us";
+argv[5] = "-lm"; argv[6] = "C:\\Users\\Jarvis\\Downloads\\CMUSphinx\\pocketsphinx-5prealpha\\model\\en-us\\en-us.lm.dmp";
+argv[7] = "-dict"; argv[8] = "D:\\Jarvis\\JarvisPlugin\\Model\\jarvis_vocab.dict";
 
-	config = cmd_ln_parse_r(NULL, cont_args_def, argc, argv, TRUE);
+config = cmd_ln_parse_r(NULL, cont_args_def, argc, argv, TRUE);
 
-	if (config == NULL || (cmd_ln_str_r(config, "-infile") == NULL && cmd_ln_boolean_r(config, "-inmic") == FALSE)) {
-		UE_LOG(LogTemp, Warning, TEXT("Specify '-infile <file.wav>' to recognize from file or '-inmic yes' to recognize from microphone.\n"));
-		cmd_ln_free_r(config);
-		return;
-	}
+if (config == NULL || (cmd_ln_str_r(config, "-infile") == NULL && cmd_ln_boolean_r(config, "-inmic") == FALSE)) {
+UE_LOG(LogTemp, Warning, TEXT("Specify '-infile <file.wav>' to recognize from file or '-inmic yes' to recognize from microphone.\n"));
+cmd_ln_free_r(config);
+return;
+}
 
-	ps_default_search_args(config);
-	ps = ps_init(config);
-	if (ps == NULL) {
-		cmd_ln_free_r(config);
-		return;
-	}
+ps_default_search_args(config);
+ps = ps_init(config);
+if (ps == NULL) {
+cmd_ln_free_r(config);
+return;
+}
 
-	if ((ad = ad_open_dev(cmd_ln_str_r(config, "-adcdev"),
-		(int)cmd_ln_float32_r(config,
-		"-samprate"))) == NULL) {
-		UE_LOG(LogTemp, Warning, TEXT("Failed to open audio device\n"));
-		return;
-	}
+if ((ad = ad_open_dev(cmd_ln_str_r(config, "-adcdev"),
+(int)cmd_ln_float32_r(config,
+"-samprate"))) == NULL) {
+UE_LOG(LogTemp, Warning, TEXT("Failed to open audio device\n"));
+return;
+}
 
-	utt_started = FALSE;
+utt_started = FALSE;
 }
 */
 
 /*
 FString UJarvisFunctionLibrary::GetUserCommand()
 {
-	if (ad_start_rec(ad) < 0) {
-		UE_LOG(LogTemp, Warning, TEXT("Failed to start recording\n"));
-		return default_user_command;
-	}
+if (ad_start_rec(ad) < 0) {
+UE_LOG(LogTemp, Warning, TEXT("Failed to start recording\n"));
+return default_user_command;
+}
 
-	if (ps_start_utt(ps) < 0) {
-		UE_LOG(LogTemp, Warning, TEXT("Failed to start utterance\\n"));
-		return default_user_command;
-	}
+if (ps_start_utt(ps) < 0) {
+UE_LOG(LogTemp, Warning, TEXT("Failed to start utterance\\n"));
+return default_user_command;
+}
 
-	do { ReadAudioBuffer(); } while (!in_speech);
-	while (in_speech) { ReadAudioBuffer(); }
+do { ReadAudioBuffer(); } while (!in_speech);
+while (in_speech) { ReadAudioBuffer(); }
 
-	ps_end_utt(ps);
-	hyp = ps_get_hyp(ps, NULL);
+ps_end_utt(ps);
+hyp = ps_get_hyp(ps, NULL);
 
-	if (hyp != NULL)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("You said: %s"), ANSI_TO_TCHAR(hyp));
+if (hyp != NULL)
+{
+UE_LOG(LogTemp, Warning, TEXT("You said: %s"), ANSI_TO_TCHAR(hyp));
 
-		if (ad_stop_rec(ad) < 0) {
-			UE_LOG(LogTemp, Warning, TEXT("Failed to stop recording\n"));
-		}
+if (ad_stop_rec(ad) < 0) {
+UE_LOG(LogTemp, Warning, TEXT("Failed to stop recording\n"));
+}
 
-		return FString(ANSI_TO_TCHAR(hyp));
-	}
+return FString(ANSI_TO_TCHAR(hyp));
+}
 
-	if (ad_stop_rec(ad) < 0) {
-		UE_LOG(LogTemp, Warning, TEXT("Failed to stop recording\n"));
-	}
+if (ad_stop_rec(ad) < 0) {
+UE_LOG(LogTemp, Warning, TEXT("Failed to stop recording\n"));
+}
 
-	return default_user_command;
+return default_user_command;
 }
 */
 
@@ -275,30 +294,36 @@ void UJarvisFunctionLibrary::LogUserAction(FString msg)
 /*
 void UJarvisFunctionLibrary::ReadAudioBuffer()
 {
-	if ((k = ad_read(ad, adbuf, 2048)) < 0)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Failed to read audio\n"));
-		return;
-	}
+if ((k = ad_read(ad, adbuf, 2048)) < 0)
+{
+UE_LOG(LogTemp, Warning, TEXT("Failed to read audio\n"));
+return;
+}
 
-	ps_process_raw(ps, adbuf, k, FALSE, FALSE);
-	in_speech = ps_get_in_speech(ps);
-	SleepMilliSec(5);
+ps_process_raw(ps, adbuf, k, FALSE, FALSE);
+in_speech = ps_get_in_speech(ps);
+SleepMilliSec(5);
 }
 */
 
 void UJarvisFunctionLibrary::CaptureActorState(AActor* Actor)
 {
+	UE_LOG(UserActionsLog, Warning, TEXT("CaptureActorState [1]"));
 	FActorState* State = GetActorState(Actor);
-
+	UE_LOG(UserActionsLog, Warning, TEXT("CaptureActorState [2]"));
 	LogFActorState(State);
+	UE_LOG(UserActionsLog, Warning, TEXT("CaptureActorState [3]"));
 
 	if (RedoSnapshots.Num() > 0)
 	{
+		UE_LOG(UserActionsLog, Warning, TEXT("CaptureActorState [4]"));
 		RedoSnapshots.SetNum(0);
+		UE_LOG(UserActionsLog, Warning, TEXT("CaptureActorState [5]"));
 	}
 
+	UE_LOG(UserActionsLog, Warning, TEXT("CaptureActorState [6]"));
 	UndoSnapshots.Push(State);
+	UE_LOG(UserActionsLog, Warning, TEXT("CaptureActorState [7]"));
 
 	UE_LOG(UserActionsLog, Warning, TEXT("Recording user action (Size of UndoSnapshots: %d) (Size of RedoSnapshots: %d)"), UndoSnapshots.Num(), RedoSnapshots.Num());
 }
@@ -306,6 +331,7 @@ void UJarvisFunctionLibrary::CaptureActorState(AActor* Actor)
 void UJarvisFunctionLibrary::Redo()
 {
 	UE_LOG(UserActionsLog, Warning, TEXT("REDO called"));
+	UE_LOG(UserActionsLog, Warning, TEXT("(Size of UndoSnapshots: %d) (Size of RedoSnapshots: %d)"), UndoSnapshots.Num(), RedoSnapshots.Num());
 	if (RedoSnapshots.Num() > 0)
 	{
 		FActorState* State = RedoSnapshots.Pop();
@@ -318,26 +344,60 @@ void UJarvisFunctionLibrary::Redo()
 		return;
 	}
 
+	UE_LOG(UserActionsLog, Warning, TEXT("(Size of UndoSnapshots: %d) (Size of RedoSnapshots: %d)"), UndoSnapshots.Num(), RedoSnapshots.Num());
 	UE_LOG(UserActionsLog, Warning, TEXT("No more actions left to redo"));
 }
 
 void UJarvisFunctionLibrary::Undo()
 {
 	UE_LOG(UserActionsLog, Warning, TEXT("UNDO called"));
+	UE_LOG(UserActionsLog, Warning, TEXT("(Size of UndoSnapshots: %d) (Size of RedoSnapshots: %d)"), UndoSnapshots.Num(), RedoSnapshots.Num());
 	if (UndoSnapshots.Num() > 0)
 	{
 		FActorState* State = UndoSnapshots.Pop();
 
 		FActorState* CurrentStateOfActor = GetActorState(State->Actor);
 		RedoSnapshots.Push(CurrentStateOfActor);
-		
+
 		SetActorState(State);
 		UE_LOG(UserActionsLog, Warning, TEXT("UNDO performed (Size of UndoSnapshots: %d) (Size of RedoSnapshots: %d)"), UndoSnapshots.Num(), RedoSnapshots.Num());
 		LogFActorState(State);
 		return;
 	}
 
+	UE_LOG(UserActionsLog, Warning, TEXT("(Size of UndoSnapshots: %d) (Size of RedoSnapshots: %d)"), UndoSnapshots.Num(), RedoSnapshots.Num());
 	UE_LOG(UserActionsLog, Warning, TEXT("No more actions left to undo"));
+}
+
+FString UJarvisFunctionLibrary::SaveWorldFromGame(UObject* worldMember) {
+	// First see if it is an in-memory package that already has an associated filename
+	//UWorld* currentWorld = worldMember->GetWorld();
+	//FString testString = currentWorld->GetFName().ToString();
+	//return testString;
+	const FString PackageNameString = worldMember->GetWorld()->GetOutermost()->GetFName().ToString();
+	return PackageNameString;
+	const bool bIncludeReadOnlyRoots = false;
+	if (false){
+		if (FPackageName::IsValidLongPackageName(PackageNameString, bIncludeReadOnlyRoots)) {
+			FString SaveFilename = FPackageName::LongPackageNameToFilename(PackageNameString, FPackageName::GetMapPackageExtension());
+
+			UPackage* Package = CastChecked<UPackage>(worldMember->GetWorld()->GetOuter());
+
+			// @todo: Calling SavePackage() directly allows us to save map packages while in game (GIsEditor=false).  It skips a lot of the editor-specific map saving code (UEditorEngine::SavePackage, OnPreSaveWorld, OnPostSaveWorld), but for the most part those functions are performing checks specific to the editor and should not be needed.
+
+			const uint32 SaveFlags = SAVE_KeepDirty;
+			const bool bWarnOfLongFilename = false;
+			bool bSuccess = UPackage::SavePackage(Package, nullptr, RF_Standalone, *SaveFilename, GWarn, nullptr, false, bWarnOfLongFilename, SaveFlags);
+			if (bSuccess) {
+				// It worked!
+			}
+			else {
+				// @todo: Handle this error
+			}
+			return TEXT("true/false");// bSuccess;
+		}
+	}
+	return PackageNameString;
 }
 
 FActorState* UJarvisFunctionLibrary::GetActorState(AActor* Actor)
