@@ -1,22 +1,29 @@
 # Jarvis
 Repo for Team Jarvis
 
-## Editor
+### Requirements:
+* Unreal Engine 4.7 
+* Oculus Rift DK2
+* Razer Hydra + Razer Hydra UE4 plugin
+* Headphones with a microphone 
+
+### Instructions:
+1. Compile UE4.7 with the Hydra plugin.
+2. Compile UE4.7 with JarvisPlugin (instructions below).
+3. Install any necessary software for the Rift, Hydra, and headphones.
+4. Plug in all the peripherals.
+5. Open **Editor/Editor.uproject** in your new version of UE4 and press Play.
+
+### Folders:
+#### Editor
 Unreal Engine level editing project. Uses the Razer Hydra.
 
-## EditorPrototype
-Unreal project that uses the Xbox 360 controller to move and scale objects. Deprecated.
+#### JarvisPlugin
+A custom plugin to integrate both Speech Recognition and custom functions into Unreal Engine 4
 
-## SpeechRecognition
-### Voce
-We intend to use Voce as the speech recognition library in the backend
+To build the plugin (warning: these instructions have not been fully tested):
 
-### SpeechRecognitionPlugin
-A custom plugin to integrate Speech Recognition into Unreal Engine 4
-
-To build the plugin:
-
-1. Copy the **SpeechRecognitionPlugin** folder (present in the repo) to **<UE-Code-Root-Dir>/Engine/Plugins**
+1. Copy the **JarvisPlugin** folder (present in the repo) to **<UE-Code-Root-Dir>/Engine/Plugins**
 2. Run GenerateProjectFiles.bat from **<UE-Code-Root-Dir>**
 3. Open **<UE-Code-Root-Dir>/UE4.sln** using Visual Studio 2013
 4. Set the solution configuration to **Development Editor** (This can be done from the drop-down in the toolbar on top)
@@ -24,7 +31,7 @@ To build the plugin:
 
 In order to use the plugin in UE4, follow these steps in the editor:
 
-1. Go to **Window->Plugins->SpeechRecognition** and enable the plugin. Restart the UE editor to enable the plugin
+1. Go to **Window->Plugins->JarvisPlugin** and enable the plugin. Restart the UE editor to enable the plugin
 2. Choose an actor (or a define a new one) in the level being edited
 3. Open the blueprint for the actor and click on the **Components** tab on the top-right
 4. From the panel on the left, choose **Add Component** and select **Speech Input Controller** listed under the **Input** section
