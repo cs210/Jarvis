@@ -21,6 +21,8 @@ Unreal Engine level editing project. Uses the Razer Hydra.
 #### JarvisPlugin
 A custom plugin to integrate both Speech Recognition and custom functions into Unreal Engine 4
 
+**Warning:** *the speech recognition service does not work (we ran out of time to figure out how to port it. If you figure it out let us know!). You'll need to hunt down and comment out all references to CMUSphinx package. Then the demo will run without the import feature.*
+
 To build the plugin (warning: these instructions have not been fully tested):
 
 1. Copy the **JarvisPlugin** folder (present in the repo) to **<UE-Code-Root-Dir>/Engine/Plugins**
